@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from backend.services.pdf_reader import load_pdf_content
 from backend.routers import chat
@@ -20,8 +21,10 @@ def startup_event():
     try:
         load_pdf_content()
     except Exception as e:
-        print(f"Error loading the PDF file: {e}")
-
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"error": "PDF loading fails", "details": str(e)}
+        )
 
 @app.get("/")
 def root():
@@ -30,10 +33,14 @@ def root():
 
 @app.get("/health")
 def health_check():
-    return {
-        "status": "ok",
-        "service": "chatbot-pdf-backend"
-    }
+    try:
+        return {"status": "ok", "service": "chatbot-pdf-backend"}
+    except Exception as e:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"error": "Health check failed", "details": str(e)}
+        )
+
 
 
 app.include_router(chat.router)

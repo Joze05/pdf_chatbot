@@ -2,27 +2,34 @@
 
 import { useState, useRef, useEffect, type FormEvent, type KeyboardEvent } from "react"
 
+// Define the structure of a chat message
 interface Message {
     id: string
     text: string
-    sender: "user" | "ai"
+    sender: "user" | "ai" // Who sent the message
     timestamp: Date
 }
 
 export default function ChatInterface() {
-    const [messages, setMessages] = useState<Message[]>([])
-    const [inputValue, setInputValue] = useState<string>("")
-    const [isTyping, setIsTyping] = useState<boolean>(false)
-    const [error, setError] = useState<string | null>(null)
+    // State variables
+    const [messages, setMessages] = useState<Message[]>([]) // All chat messages
+    const [inputValue, setInputValue] = useState<string>("") // Current text input
+    const [isTyping, setIsTyping] = useState<boolean>(false) // AI typing indicator
+    const [error, setError] = useState<string | null>(null) // Error messages
+
+    // Refs for scrolling and textarea auto-resize
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-    // Keep scrolling to the bottom when messages arrive
+    // Auto-scroll to bottom when messages or typing indicator changes
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }, [messages, isTyping])
 
-    // Send message to the backend and receive response via SSE
+    /**
+     * Send user message to backend and receive streaming response via SSE.
+     * @param userMessage - The message text from the user
+     */
     const sendMessageToBackend = async (userMessage: string) => {
         setIsTyping(true)
         setError(null)
@@ -49,6 +56,7 @@ export default function ChatInterface() {
             let aiMessageId = ""
             let firstChunk = true
 
+            // Read streaming chunks from the backend
             while (true) {
                 const { value, done } = await reader.read()
                 if (done) break
@@ -57,6 +65,7 @@ export default function ChatInterface() {
                 const lines = chunk.split("\n").filter((line) => line.trim() !== "")
 
                 for (const line of lines) {
+                    // Clean up SSE data prefix
                     const dataStr = line.replace(/^data:\s*/, "").replace(/^data:\s*/, "").trim()
                     if (!dataStr) continue
 
@@ -66,6 +75,7 @@ export default function ChatInterface() {
                         const newText = parsed.content
 
                         if (firstChunk) {
+                            // Add new AI message placeholder to state
                             aiMessageId = Date.now().toString()
                             setMessages((prev) => [
                                 ...prev,
@@ -73,10 +83,11 @@ export default function ChatInterface() {
                             ])
                             firstChunk = false
 
+                            // Remove typing indicator immediately after first chunk
                             setIsTyping(false)
                         }
 
-                        // Character-by-character animation
+                        // Append characters one by one for typing animation
                         for (let i = 0; i < newText.length; i++) {
                             aiMessageText += newText[i]
                             setMessages((prev) =>
@@ -84,13 +95,13 @@ export default function ChatInterface() {
                                     msg.id === aiMessageId ? { ...msg, text: aiMessageText } : msg
                                 )
                             )
-                            await new Promise((resolve) => setTimeout(resolve, 15)) // velocidad de escritura
+                            await new Promise((resolve) => setTimeout(resolve, 15)) // typing speed
                         }
                     } else if (parsed.type === "done") {
                         setIsTyping(false)
                         return
                     } else if (parsed.type === "error") {
-                        setError(parsed.content || "Error desconocido del backend")
+                        setError(parsed.content || "Unknown backend error")
                         setIsTyping(false)
                         return
                     }
@@ -98,17 +109,19 @@ export default function ChatInterface() {
             }
         } catch (err: any) {
             console.error("Error fetching from backend:", err)
-            setError("Error al conectar con el servidor.")
+            setError("Failed to connect to server.")
             setIsTyping(false)
         }
     }
 
-
-    // Handle user message sending
+    /**
+     * Handle sending a user message from the form
+     */
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         if (!inputValue.trim()) return
 
+        // Add user message to chat state
         const userMessage: Message = {
             id: Date.now().toString(),
             text: inputValue,
@@ -124,14 +137,18 @@ export default function ChatInterface() {
         await sendMessageToBackend(messageText)
     }
 
-    // Clean conversation
+    /**
+     * Clear all messages and reset state
+     */
     const handleClearChat = () => {
         setMessages([])
         setIsTyping(false)
         setError(null)
     }
 
-    // Send the message by pressing Enter button
+    /**
+     * Send message when Enter key is pressed (Shift+Enter for newline)
+     */
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault()
@@ -139,18 +156,24 @@ export default function ChatInterface() {
         }
     }
 
-    // Auto-adjust text area
+    /**
+     * Auto-adjust textarea height based on content
+     */
     const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setInputValue(e.target.value)
         e.target.style.height = "auto"
         e.target.style.height = `${e.target.scrollHeight}px`
     }
 
+    /**
+     * Format timestamp for display
+     */
     const formatTime = (date: Date): string =>
         date.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })
 
     return (
         <div className="chat-container">
+            {/* Chat header with title and clear button */}
             <div className="chat-header">
                 <div className="header-content">
                     <div className="header-info">
@@ -167,6 +190,7 @@ export default function ChatInterface() {
                 </div>
             </div>
 
+            {/* Chat messages container */}
             <div className="messages-container">
                 {messages.length === 0 ? (
                     <div className="empty-state">
@@ -180,6 +204,7 @@ export default function ChatInterface() {
                     </div>
                 ) : (
                     <>
+                        {/* Render all messages */}
                         {messages.map((message) => (
                             <div key={message.id} className={`message ${message.sender === "user" ? "message-user" : "message-ai"}`}>
                                 <div className="message-content">
@@ -188,6 +213,8 @@ export default function ChatInterface() {
                                 </div>
                             </div>
                         ))}
+
+                        {/* Typing indicator */}
                         {isTyping && (
                             <div className="message message-ai">
                                 <div className="message-content">
@@ -205,6 +232,7 @@ export default function ChatInterface() {
                 <div ref={messagesEndRef} />
             </div>
 
+            {/* Input area */}
             <div className="input-container">
                 <form onSubmit={handleSubmit} className="input-form">
                     <textarea
