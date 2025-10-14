@@ -1,36 +1,25 @@
 "use client"
 
 import { useState, useRef, useEffect, type FormEvent, type KeyboardEvent } from "react"
-
-// Define the structure of a chat message
-interface Message {
-    id: string
-    text: string
-    sender: "user" | "ai" // Who sent the message
-    timestamp: Date
-}
+import type { Message } from "./types"
+import ChatHeader from "./ChatHeader"
+import ChatMessages from "./ChatMessages"
+import ChatInput from "./ChatInput"
 
 export default function ChatInterface() {
-    // State variables
-    const [messages, setMessages] = useState<Message[]>([]) // All chat messages
-    const [inputValue, setInputValue] = useState<string>("") // Current text input
-    const [isTyping, setIsTyping] = useState<boolean>(false) // AI typing indicator
-    const [error, setError] = useState<string | null>(null) // Error messages
-    const [totalTokens, setTotalTokens] = useState<number>(0) // Total tokens 
+    const [messages, setMessages] = useState<Message[]>([])
+    const [inputValue, setInputValue] = useState("")
+    const [isTyping, setIsTyping] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+    const [totalTokens, setTotalTokens] = useState(0)
 
-    // Refs for scrolling and textarea auto-resize
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-    // Auto-scroll to bottom when messages or typing indicator changes
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }, [messages, isTyping])
 
-    /**
-     * Send user message to backend and receive streaming response via SSE.
-     * @param userMessage - The message text from the user
-     */
     const sendMessageToBackend = async (userMessage: string) => {
         setIsTyping(true)
         setError(null)
@@ -177,93 +166,39 @@ export default function ChatInterface() {
 
     return (
         <div className="chat-container">
-            {/* Chat header with title and clear button */}
-            <div className="chat-header">
-                <div className="header-content">
-                    <div className="header-info">
-                        <h1 className="header-title">Asistente AI</h1>
-                        <p className="header-subtitle">Siempre aquí para ayudarte</p>
-                    </div>
-                    <button onClick={handleClearChat} className="clear-button" title="Limpiar conversación">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M3 6h18" />
-                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
+            <ChatHeader onClearChat={() => {
+                setMessages([])
+                setIsTyping(false)
+                setError(null)
+                setTotalTokens(0)
+            }} />
 
-            {/* Chat messages container */}
-            <div className="messages-container">
-                {messages.length === 0 ? (
-                    <div className="empty-state">
-                        <div className="empty-icon">
-                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                            </svg>
-                        </div>
-                        <h2 className="empty-title">¡Comienza una conversación!</h2>
-                        <p className="empty-description">Escribe un mensaje para comenzar a chatear con el asistente AI</p>
-                    </div>
-                ) : (
-                    <>
-                        {/* Render all messages */}
-                        {messages.map((message) => (
-                            <div key={message.id} className={`message ${message.sender === "user" ? "message-user" : "message-ai"}`}>
-                                <div className="message-content">
-                                    <p className="message-text">{message.text}</p>
-                                    <span className="message-time">{formatTime(message.timestamp)}</span>
-                                </div>
-                            </div>
-                        ))}
+            <ChatMessages
+                messages={messages}
+                isTyping={isTyping}
+                error={error}
+                formatTime={formatTime}
+                messagesEndRef={messagesEndRef}
+            />
 
-                        {/* Typing indicator */}
-                        {isTyping && (
-                            <div className="message message-ai">
-                                <div className="message-content">
-                                    <div className="typing-indicator">
-                                        <span></span>
-                                        <span></span>
-                                        <span></span>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </>
-                )}
-                {error && <p className="error-text">{error}</p>}
-                <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input area */}
-            <div className="input-container">
-                <form onSubmit={handleSubmit} className="input-form">
-                    <textarea
-                        ref={textareaRef}
-                        value={inputValue}
-                        onChange={handleTextareaChange}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Escribe tu mensaje..."
-                        className="message-input"
-                        rows={1}
-                    />
-                    <button type="submit" disabled={!inputValue.trim() || isTyping} className="send-button" title="Enviar mensaje">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <line x1="22" y1="2" x2="11" y2="13" />
-                            <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                        </svg>
-                    </button>
-                </form>
-                {totalTokens > 0 && (
-                <p className="token-counter">
-                    Tokens utilizados en esta sesión: <b>{totalTokens}</b>
-                </p>
-                )}
-                <p className="input-hint">
-                    Presiona <kbd>Enter</kbd> para enviar, <kbd>Shift + Enter</kbd> para nueva línea
-                </p>
-            </div>
+            <ChatInput
+                inputValue={inputValue}
+                isTyping={isTyping}
+                totalTokens={totalTokens}
+                onInputChange={(e) => {
+                    setInputValue(e.target.value)
+                    e.target.style.height = "auto"
+                    e.target.style.height = `${e.target.scrollHeight}px`
+                }}
+                onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault()
+                        e.currentTarget.form?.requestSubmit()
+                    }
+                }}
+                onSubmit={handleSubmit}
+                textareaRef={textareaRef}
+            />
         </div>
     )
 }
