@@ -14,7 +14,7 @@ export const ExportChatButton: React.FC<ExportChatButtonProps> = ({ messages }) 
     const markdownContent = messages
       .map(msg => {
         const time = new Date(msg.timestamp).toLocaleTimeString()
-        const prefix = msg.sender === "user" ? "👤 **User**" : "🤖 **AI**"
+        const prefix = msg.sender === "user" ? "**User**" : "**AI**"
         return `${prefix} (${time}):\n\n${msg.text}\n\n---`
       })
       .join("\n")
