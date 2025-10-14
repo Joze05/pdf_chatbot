@@ -43,6 +43,13 @@ async def stream_answer(messages: list):
             elif event.type == "message.completed":
                 break
 
+         # Once complete, get the final response to read token usage
+        final_response = stream.get_final_response()
+        usage = final_response.usage
+        print(usage.total_tokens)
+        if usage:
+            yield f"data: {json.dumps({'type': 'usage', 'prompt_tokens': usage.prompt_tokens, 'completion_tokens': usage.completion_tokens, 'total_tokens': usage.total_tokens})}\n\n"
+
         stream.close()
 
     except Exception as e:
@@ -56,6 +63,10 @@ async def stream_answer(messages: list):
             text = fallback.choices[0].message.content
             acc.append(text)
             yield f"data: {json.dumps({'type': 'content', 'content': text})}\n\n"
+             # Include usage info from fallback
+            usage = fallback.usage
+            if usage:
+                yield f"data: {json.dumps({'type': 'usage', 'prompt_tokens': usage.prompt_tokens, 'completion_tokens': usage.completion_tokens, 'total_tokens': usage.total_tokens})}\n\n"
         except Exception as fallback_exc:
             yield f"data: {json.dumps({'type': 'error', 'content': f'Streaming failed: {str(e)}; fallback failed: {str(fallback_exc)}'})}\n\n"
 

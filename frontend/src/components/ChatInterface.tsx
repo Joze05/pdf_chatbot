@@ -16,6 +16,7 @@ export default function ChatInterface() {
     const [inputValue, setInputValue] = useState<string>("") // Current text input
     const [isTyping, setIsTyping] = useState<boolean>(false) // AI typing indicator
     const [error, setError] = useState<string | null>(null) // Error messages
+    const [totalTokens, setTotalTokens] = useState<number>(0) // Total tokens 
 
     // Refs for scrolling and textarea auto-resize
     const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -104,6 +105,8 @@ export default function ChatInterface() {
                         setError(parsed.content || "Unknown backend error")
                         setIsTyping(false)
                         return
+                    } else if (parsed.type === "usage") {
+                        setTotalTokens(parsed.total_tokens)
                     }
                 }
             }
@@ -144,6 +147,7 @@ export default function ChatInterface() {
         setMessages([])
         setIsTyping(false)
         setError(null)
+        setTotalTokens(0)
     }
 
     /**
@@ -251,6 +255,11 @@ export default function ChatInterface() {
                         </svg>
                     </button>
                 </form>
+                {totalTokens > 0 && (
+                <p className="token-counter">
+                    Tokens utilizados en esta sesión: <b>{totalTokens}</b>
+                </p>
+                )}
                 <p className="input-hint">
                     Presiona <kbd>Enter</kbd> para enviar, <kbd>Shift + Enter</kbd> para nueva línea
                 </p>
