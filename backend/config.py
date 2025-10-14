@@ -7,6 +7,8 @@ load_dotenv()
 # Securely access variables
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 FRONTEND_URL=os.getenv("FRONTEND_URL")
+RATE_LIMIT = int(os.getenv("RATE_LIMIT", "5"))
+TIME_WINDOW = int(os.getenv("TIME_WINDOW", "60"))
 
 if not OPENAI_API_KEY:
     raise ValueError("The OPENAI_API_KEY environment variable was not found.")
