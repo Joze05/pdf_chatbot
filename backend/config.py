@@ -1,12 +1,13 @@
 import os
 from dotenv import load_dotenv
 
-# Cargar las variables solo una vez
+# Load env variables
 load_dotenv()
 
-# Acceder de forma segura a las variables
+# Securely access variables
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+FRONTEND_URL=os.getenv("FRONTEND_URL")
 
 if not OPENAI_API_KEY:
-    raise ValueError("❌ No se encontró la variable de entorno OPENAI_API_KEY")
+    raise ValueError("The OPENAI_API_KEY environment variable was not found.")
 
