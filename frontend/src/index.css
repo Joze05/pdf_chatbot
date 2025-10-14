@@ -292,6 +292,13 @@ body {
   cursor: not-allowed;
 }
 
+.token-counter {
+  font-size: 0.85rem;
+  color: gray;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
 .input-hint {
   margin-top: 0.75rem;
   font-size: 0.75rem;
