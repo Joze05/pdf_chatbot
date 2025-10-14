@@ -61,6 +61,36 @@ body {
   opacity: 0.9;
 }
 
+.export-button {
+  background-color: #8c5ec0;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.25s ease, transform 0.1s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.export-button:hover {
+  background-color: #633994;
+  transform: translateY(-1px);
+}
+
+.export-button:active {
+  background-color: #633994;
+  transform: translateY(0);
+}
+
+.export-button:disabled {
+  background-color: #a0a0a0;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .clear-button {
   background: rgba(255, 255, 255, 0.2);
   border: none;

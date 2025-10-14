@@ -5,6 +5,7 @@ import type { Message } from "./types"
 import ChatHeader from "./ChatHeader"
 import ChatMessages from "./ChatMessages"
 import ChatInput from "./ChatInput"
+import { ExportChatButton } from "./ExportChatButton"
 
 export default function ChatInterface() {
     const [messages, setMessages] = useState<Message[]>([])
@@ -130,35 +131,6 @@ export default function ChatInterface() {
     }
 
     /**
-     * Clear all messages and reset state
-     */
-    const handleClearChat = () => {
-        setMessages([])
-        setIsTyping(false)
-        setError(null)
-        setTotalTokens(0)
-    }
-
-    /**
-     * Send message when Enter key is pressed (Shift+Enter for newline)
-     */
-    const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault()
-            e.currentTarget.form?.requestSubmit()
-        }
-    }
-
-    /**
-     * Auto-adjust textarea height based on content
-     */
-    const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setInputValue(e.target.value)
-        e.target.style.height = "auto"
-        e.target.style.height = `${e.target.scrollHeight}px`
-    }
-
-    /**
      * Format timestamp for display
      */
     const formatTime = (date: Date): string =>
@@ -180,6 +152,8 @@ export default function ChatInterface() {
                 formatTime={formatTime}
                 messagesEndRef={messagesEndRef}
             />
+
+            <ExportChatButton messages={messages} />
 
             <ChatInput
                 inputValue={inputValue}
