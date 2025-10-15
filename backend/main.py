@@ -1,15 +1,15 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, status
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from backend.services.pdf_reader import load_pdf_content
 from backend.routers import chat
-from backend.config import FRONTEND_URL
+from backend.config import ALLOWED_CLIENT_URL
 
 app = FastAPI(title="Chatbot PDF API", version="1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_URL],
+    allow_origins=[ALLOWED_CLIENT_URL],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -40,7 +40,6 @@ def health_check():
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={"error": "Health check failed", "details": str(e)}
         )
-
 
 
 app.include_router(chat.router)

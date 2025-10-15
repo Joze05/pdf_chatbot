@@ -6,7 +6,7 @@ load_dotenv()
 
 # Securely access variables
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-FRONTEND_URL=os.getenv("FRONTEND_URL")
+ALLOWED_CLIENT_URL=os.getenv("ALLOWED_CLIENT_URL")
 RATE_LIMIT = int(os.getenv("RATE_LIMIT", "5"))
 TIME_WINDOW = int(os.getenv("TIME_WINDOW", "60"))
 
