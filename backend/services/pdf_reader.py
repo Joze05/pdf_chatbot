@@ -21,7 +21,6 @@ def load_pdf_content() -> str:
             text += page.extract_text() or ""
 
     _pdf_content = text
-    print(f"✅ PDF load with {len(text)} text characters.")
     return _pdf_content
 
 

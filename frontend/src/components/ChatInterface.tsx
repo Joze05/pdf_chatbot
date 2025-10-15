@@ -153,7 +153,7 @@ export default function ChatInterface() {
                 messagesEndRef={messagesEndRef}
             />
 
-            <ExportChatButton messages={messages} />
+            {messages.length > 0 && <ExportChatButton messages={messages} />}
 
             <ChatInput
                 inputValue={inputValue}
