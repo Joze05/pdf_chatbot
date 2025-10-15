@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Request, Depends, HTTPException
 from sse_starlette.sse import EventSourceResponse
 from collections import defaultdict
-from typing import Optional
 from backend.config import OPENAI_API_KEY
 from backend.services.pdf_reader import get_pdf_content
 from backend.middleware.rate_limit import simple_rate_limiter
